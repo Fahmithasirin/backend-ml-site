@@ -33,7 +33,7 @@ def preview_data(filename):
         else:
             return jsonify({"error": "Unsupported file type"}), 400
 
-        data = df.head(5).to_dict(orient='records')
+        data = df.to_dict(orient='records')  # Return the entire dataset
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -58,14 +58,19 @@ def clean_data():
         if action == 'remove_nulls':
             df = df.dropna(subset=columns)
         elif action == 'replace_nulls':
-            df = df.fillna(0)  
+            df = df.fillna(0)
         elif action == 'remove_duplicates':
             df = df.drop_duplicates(subset=columns)
+        elif action == 'detect_nulls':
+            df = df[df[columns].isnull().any(axis=1)]
+        elif action == 'detect_duplicates':
+            df = df[df.duplicated(subset=columns, keep=False)]
 
         cleaned_data = df.to_dict(orient='records')
         return jsonify(cleaned_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @main.route('/cancel/<filename>', methods=['DELETE'])
 def cancel_upload(filename):
